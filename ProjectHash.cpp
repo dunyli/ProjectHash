@@ -64,3 +64,55 @@ uint32_t fnv1a_hash(const char* str, uint32_t table_size) {
     */
     return hash % table_size;
 }
+
+/* БАЗОВАЯ ХЕШ-ТАБЛИЦА (с цепочками)
+ * Структура данных, хранящая пары (ключ, значение).
+ * Использует метод цепочек для разрешения коллизий.
+*/
+
+/* Узел цепочки — хранит ключ и значение */
+typedef struct HashNode {
+    char* key;              /* Ключ (строка) */
+    int value;              /* Значение (для множества: 1, для мультимножества: кратность) */
+    struct HashNode* next;  /* Указатель на следующий узел в цепочке */
+} HashNode;
+
+/* Структура хеш-таблицы */
+typedef struct {
+    HashNode** buckets;     /* Массив указателей на начало цепочек */
+    uint32_t size;          /* Размер таблицы */
+    uint32_t count;         /* Количество уникальных ключей */
+    uint32_t(*hash_func)(const char*, uint32_t); /* Указатель на хеш-функцию */
+} HashTable;
+
+/* СОЗДАНИЕ ХЕШ-ТАБЛИЦЫ
+ * Параметры:
+ *   - size: начальный размер таблицы
+ *   - hash_func: указатель на хеш-функцию (если NULL, используется FNV-1a)
+ * Возвращает: указатель на созданную таблицу или NULL при ошибке
+*/
+HashTable* ht_create(uint32_t size, uint32_t(*hash_func)(const char*, uint32_t)) {
+    /*
+     * Алгоритм создания:
+     * 1. Выделяем память под структуру HashTable
+     * 2. Инициализируем поля: размер, счётчик, хеш-функция
+     * 3. Выделяем память под массив
+     * 4. Обнуляем все указатели в массиве
+     */
+
+    HashTable* ht = (HashTable*)malloc(sizeof(HashTable));
+    if (!ht) return NULL;  /* Проверка выделения памяти */
+
+    ht->size = size;
+    ht->count = 0;
+    ht->hash_func = hash_func ? hash_func : fnv1a_hash;  /* По умолчанию FNV-1a */
+
+    /* Выделяем память под массив указателей*/
+    ht->buckets = (HashNode**)calloc(size, sizeof(HashNode*));
+    if (!ht->buckets) {
+        free(ht);
+        return NULL;
+    }
+
+    return ht;
+}
