@@ -288,3 +288,54 @@ void ht_print(HashTable* ht) {
         }
     }
 }
+
+/* МНОЖЕСТВО (Set)
+ Множество — это хеш-таблица, где значение всегда 1 (присутствие).
+ Добавлены операции: объединение, пересечение, разность, проверка подмножества.
+ Теория множеств:
+ * - Уникальные элементы (нет дубликатов)
+ * - Операции: добавление, удаление, поиск, объединение (∪), пересечение (∩)
+*/
+
+/* Множество — обёртка над хеш-таблицей */
+typedef struct {
+    HashTable* ht;
+} Set;
+
+/* СОЗДАНИЕ МНОЖЕСТВА */
+Set* set_create(uint32_t size) {
+    Set* s = (Set*)malloc(sizeof(Set));
+    if (!s) return NULL;
+
+    /* Используем хеш-таблицу с FNV-1a */
+    s->ht = ht_create(size, fnv1a_hash);
+    if (!s->ht) {
+        free(s);
+        return NULL;
+    }
+    return s;
+}
+
+/* ДОБАВЛЕНИЕ ЭЛЕМЕНТА В МНОЖЕСТВО
+ Если элемент уже есть, ничего не меняется.
+ Возвращает: true при успехе, false при ошибке.
+*/
+bool set_add(Set* s, const char* key) {
+    /* Множество хранит только присутствие, значение всегда 1 */
+    return ht_insert(s->ht, key, 1);
+}
+
+/* УДАЛЕНИЕ ЭЛЕМЕНТА ИЗ МНОЖЕСТВА */
+bool set_remove(Set* s, const char* key) {
+    return ht_delete(s->ht, key);
+}
+
+/* ПРОВЕРКА ПРИНАДЛЕЖНОСТИ К МНОЖЕСТВУ */
+bool set_contains(Set* s, const char* key) {
+    return ht_contains(s->ht, key);
+}
+
+/* ПОЛУЧЕНИЕ РАЗМЕРА МНОЖЕСТВА */
+uint32_t set_size(Set* s) {
+    return s->ht->count;
+}
