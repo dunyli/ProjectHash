@@ -529,3 +529,62 @@ bool multiset_remove_one(Multiset* ms, const char* key) {
     }
     return true;
 }
+
+/* УДАЛЕНИЕ ВСЕХ ЭКЗЕМПЛЯРОВ
+ * Полностью удаляет элемент из мультимножества.
+ * Возвращает: true если элемент был удалён, иначе false.
+*/
+bool multiset_remove_all(Multiset* ms, const char* key) {
+    return ht_delete(ms->ht, key);
+}
+
+/*  ПОЛУЧЕНИЕ КРАТНОСТИ ЭЛЕМЕНТА
+ * Возвращает: кратность элемента (0 если элемента нет).
+*/
+int multiset_count(Multiset* ms, const char* key) {
+    int count;
+    if (ht_get(ms->ht, key, &count)) return count;
+    return 0;  /* Элемент отсутствует */
+}
+
+/* ОБЩЕЕ КОЛИЧЕСТВО ЭЛЕМЕНТОВ (с учётом кратности) */
+uint32_t multiset_total_size(Multiset* ms) {
+    uint32_t total = 0;
+    for (uint32_t i = 0; i < ms->ht->size; i++) {
+        HashNode* curr = ms->ht->buckets[i];
+        while (curr) {
+            total += curr->value;  /* Суммируем кратности */
+            curr = curr->next;
+        }
+    }
+    return total;
+}
+
+/* КОЛИЧЕСТВО УНИКАЛЬНЫХ ЭЛЕМЕНТОВ */
+uint32_t multiset_unique_count(Multiset* ms) {
+    return ms->ht->count;
+}
+
+/* ПЕЧАТЬ МУЛЬТИМНОЖЕСТВА */
+void multiset_print(Multiset* ms) {
+    printf("Multiset { ");
+    bool first = true;
+    for (uint32_t i = 0; i < ms->ht->size; i++) {
+        HashNode* curr = ms->ht->buckets[i];
+        while (curr) {
+            if (!first) printf(", ");
+            printf("%s:%d", curr->key, curr->value);
+            first = false;
+            curr = curr->next;
+        }
+    }
+    printf(" } (unique=%u, total=%u)\n",
+        multiset_unique_count(ms), multiset_total_size(ms));
+}
+
+/* ОСВОБОЖДЕНИЕ МУЛЬТИМНОЖЕСТВА */
+void multiset_destroy(Multiset* ms) {
+    if (!ms) return;
+    ht_destroy(ms->ht);
+    free(ms);
+}
