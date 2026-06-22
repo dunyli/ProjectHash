@@ -650,7 +650,7 @@ void test_set() {
     set_add(s_union, "A"); set_add(s_union, "B");
     set_add(s_union, "C"); set_add(s_union, "D");
     set_union(s_union, s2);
-    printf("s1 ∪ s2: "); set_print(s_union);
+    printf("s1 or s2: "); set_print(s_union);
     set_destroy(s_union);
 
     /* Пересечение */
@@ -658,7 +658,7 @@ void test_set() {
     set_add(s_inter, "A"); set_add(s_inter, "B");
     set_add(s_inter, "C"); set_add(s_inter, "D");
     set_intersection(s_inter, s2);
-    printf("s1 ∩ s2: "); set_print(s_inter);
+    printf("s1 and s2: "); set_print(s_inter);
     set_destroy(s_inter);
 
     /* Проверка подмножества */
@@ -666,8 +666,8 @@ void test_set() {
     set_add(s3, "C");
     set_add(s3, "D");
     printf("s3: "); set_print(s3);
-    printf("s3 ⊆ s1: %s\n", set_is_subset(s1, s3) ? "да" : "нет");
-    printf("s3 ⊆ s2: %s\n", set_is_subset(s2, s3) ? "да" : "нет");
+    printf("s3 in s1: %s\n", set_is_subset(s1, s3) ? "да" : "нет");
+    printf("s3 in s2: %s\n", set_is_subset(s2, s3) ? "да" : "нет");
 
     set_destroy(s1);
     set_destroy(s2);
