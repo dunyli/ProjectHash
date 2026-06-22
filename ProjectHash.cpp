@@ -811,8 +811,8 @@ void example_usage() {
     /* ПРИМЕР 2: Мультимножество для подсчёта частоты слов */
     printf("\n2. Подсчёт частоты слов с помощью мультимножества:\n");
     Multiset* freq = multiset_create(10);
-    const char* words[] = { "the", "quick", "brown", "fox", "jumps",
-                           "over", "the", "lazy", "dog", "the" };
+    const char* words[] = { "the", "я", "написал", "этот", "текст",
+                           "текст", "the", "lazy", "этот", "the" };
 
     /* Подсчёт частоты */
     for (int i = 0; i < 10; i++) {
@@ -829,11 +829,11 @@ void example_usage() {
     /* ПРИМЕР 3: Система прав доступа (множество администраторов) */
     printf("\n3. Система прав доступа:\n");
     Set* admins = set_create(10);
-    set_add(admins, "alice");
+    set_add(admins, "Иван");
     set_add(admins, "bob");
     set_add(admins, "charlie");
 
-    const char* users[] = { "alice", "dave", "bob", "eve" };
+    const char* users[] = { "Иван", "Петр", "Даниил", "bob" };
     for (int i = 0; i < 4; i++) {
         printf("  Пользователь %s %s администратором\n",
             users[i], set_contains(admins, users[i]) ? "является" : "не является");
@@ -888,7 +888,7 @@ int main() {
     printf("===============================================================\n");
     printf("     ХЕШ-ТАБЛИЦА, МНОЖЕСТВО И МУЛЬТИМНОЖЕСТВО НА C\n");
     printf("     Хеш-функция: FNV-1a (Fowler-Noll-Vo, вариант 1a)\n");
-    printf("     Разрешение коллизий: цепочки (chaining)\n");
+    printf("     Разрешение коллизий: цепочки\n");
     printf("===============================================================\n");
 
     /* Запуск всех тестов */
