@@ -786,3 +786,99 @@ void run_all_tests() {
     test_collisions();
     test_performance();
 }
+
+/* ПРИМЕРЫ ПРИМЕНЕНИЯ */
+void example_usage() {
+    printf("\n=== ПРИМЕРЫ ПРИМЕНЕНИЯ ===\n");
+
+    /* ПРИМЕР 1: Множество для проверки уникальности слов */
+    printf("\n1. Проверка уникальности слов в тексте:\n");
+    const char* text[] = { "apple", "banana", "apple", "cherry", "banana", "date" };
+    Set* unique = set_create(10);
+
+    for (int i = 0; i < 6; i++) {
+        if (set_contains(unique, text[i])) {
+            printf("  Слово '%s' уже встречалось!\n", text[i]);
+        }
+        else {
+            set_add(unique, text[i]);
+            printf("  Добавлено новое слово: '%s'\n", text[i]);
+        }
+    }
+    printf("  Уникальных слов: %u\n", set_size(unique));
+    set_destroy(unique);
+
+    /* ПРИМЕР 2: Мультимножество для подсчёта частоты слов */
+    printf("\n2. Подсчёт частоты слов с помощью мультимножества:\n");
+    Multiset* freq = multiset_create(10);
+    const char* words[] = { "the", "quick", "brown", "fox", "jumps",
+                           "over", "the", "lazy", "dog", "the" };
+
+    /* Подсчёт частоты */
+    for (int i = 0; i < 10; i++) {
+        multiset_add(freq, words[i]);
+    }
+
+    printf("Результат подсчёта:\n");
+    multiset_print(freq);
+
+    printf("Частота слова 'the': %d\n", multiset_count(freq, "the"));
+    printf("Частота слова 'quick': %d\n", multiset_count(freq, "quick"));
+    multiset_destroy(freq);
+
+    /* ПРИМЕР 3: Система прав доступа (множество администраторов) */
+    printf("\n3. Система прав доступа:\n");
+    Set* admins = set_create(10);
+    set_add(admins, "alice");
+    set_add(admins, "bob");
+    set_add(admins, "charlie");
+
+    const char* users[] = { "alice", "dave", "bob", "eve" };
+    for (int i = 0; i < 4; i++) {
+        printf("  Пользователь %s %s администратором\n",
+            users[i], set_contains(admins, users[i]) ? "является" : "не является");
+    }
+    set_destroy(admins);
+
+    /* ПРИМЕР 4: Операции над множествами (анализ данных) */
+    printf("\n4. Анализ данных с помощью операций над множествами:\n");
+
+    Set* students_A = set_create(10);
+    Set* students_B = set_create(10);
+
+    set_add(students_A, "Иван");
+    set_add(students_A, "Пётр");
+    set_add(students_A, "Мария");
+    set_add(students_A, "Анна");
+
+    set_add(students_B, "Мария");
+    set_add(students_B, "Анна");
+    set_add(students_B, "Сергей");
+    set_add(students_B, "Елена");
+
+    printf("Группа A: "); set_print(students_A);
+    printf("Группа B: "); set_print(students_B);
+
+    /* Студенты, которые есть в обеих группах (пересечение) */
+    Set* both = set_create(10);
+    set_add(both, "Мария");
+    set_add(both, "Анна");
+    set_intersection(both, students_A);
+    set_intersection(both, students_B);
+    printf("Студенты в обеих группах: "); set_print(both);
+    set_destroy(both);
+
+    /* Студенты только в группе A (разность) */
+    Set* only_A = set_create(10);
+    set_add(only_A, "Иван");
+    set_add(only_A, "Пётр");
+    set_add(only_A, "Мария");
+    set_add(only_A, "Анна");
+    set_difference(only_A, students_B);
+    printf("Только в группе A: "); set_print(only_A);
+    set_destroy(only_A);
+
+    set_destroy(students_A);
+    set_destroy(students_B);
+}
+
