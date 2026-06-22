@@ -339,3 +339,116 @@ bool set_contains(Set* s, const char* key) {
 uint32_t set_size(Set* s) {
     return s->ht->count;
 }
+
+/* ОБЪЕДИНЕНИЕ МНОЖЕСТВ: s = s ∪ other
+ * Добавляет все элементы из other в s.
+ * Если элемент уже есть в s, он остаётся (уникальность сохраняется).
+*/
+void set_union(Set* s, Set* other) {
+    /* Алгоритм объединения:
+     * Проходим по всем ячейкам other и добавляем все ключи в s
+     */
+    for (uint32_t i = 0; i < other->ht->size; i++) {
+        HashNode* curr = other->ht->buckets[i];
+        while (curr) {
+            set_add(s, curr->key);  /* если уже есть, не изменится */
+            curr = curr->next;
+        }
+    }
+}
+
+/* ОСВОБОЖДЕНИЕ МНОЖЕСТВА */
+void set_destroy(Set* s) {
+    if (!s) return;
+    ht_destroy(s->ht);
+    free(s);
+}
+
+/* ПЕРЕСЕЧЕНИЕ МНОЖЕСТВ: s = s ∩ other
+ * Оставляет в s только те элементы, которые есть в other.
+*/
+void set_intersection(Set* s, Set* other) {
+    /*
+     * Алгоритм пересечения:
+     * 1. Находим все ключи из s, которых нет в other
+     * 2. Удаляем их из s (оставляем только общие)
+     */
+
+     /* Временное множество для хранения ключей, которые нужно удалить */
+    Set* to_remove = set_create(s->ht->size);
+    if (!to_remove) return;
+
+    /* Проходим по всем элементам s */
+    for (uint32_t i = 0; i < s->ht->size; i++) {
+        HashNode* curr = s->ht->buckets[i];
+        while (curr) {
+            /* Если элемента нет в other — отмечаем для удаления */
+            if (!set_contains(other, curr->key)) {
+                set_add(to_remove, curr->key);
+            }
+            curr = curr->next;
+        }
+    }
+
+    /* Удаляем все отмеченные ключи из s */
+    for (uint32_t i = 0; i < to_remove->ht->size; i++) {
+        HashNode* curr = to_remove->ht->buckets[i];
+        while (curr) {
+            set_remove(s, curr->key);
+            curr = curr->next;
+        }
+    }
+
+    set_destroy(to_remove);
+}
+
+/* РАЗНОСТЬ МНОЖЕСТВ: s = s \ other
+ * Удаляет из s все элементы, которые есть в other.
+ */
+void set_difference(Set* s, Set* other) {
+    /*
+     * Алгоритм разности:
+     * Проходим по всем элементам other и удаляем их из s
+     */
+    for (uint32_t i = 0; i < other->ht->size; i++) {
+        HashNode* curr = other->ht->buckets[i];
+        while (curr) {
+            set_remove(s, curr->key);
+            curr = curr->next;
+        }
+    }
+}
+
+/* ПРОВЕРКА ПОДМНОЖЕСТВА: other ⊆ s ?
+ * Возвращает: true если каждый элемент other есть в s, иначе false.
+*/
+bool set_is_subset(Set* s, Set* other) {
+    /*
+     * Алгоритм проверки подмножества:
+     * Проверяем, что каждый элемент other присутствует в s
+     */
+    for (uint32_t i = 0; i < other->ht->size; i++) {
+        HashNode* curr = other->ht->buckets[i];
+        while (curr) {
+            if (!set_contains(s, curr->key)) return false;
+            curr = curr->next;
+        }
+    }
+    return true;
+}
+
+/* ПЕЧАТЬ МНОЖЕСТВА */
+void set_print(Set* s) {
+    printf("Set { ");
+    bool first = true;
+    for (uint32_t i = 0; i < s->ht->size; i++) {
+        HashNode* curr = s->ht->buckets[i];
+        while (curr) {
+            if (!first) printf(", ");
+            printf("%s", curr->key);
+            first = false;
+            curr = curr->next;
+        }
+    }
+    printf(" } (size=%u)\n", set_size(s));
+}
