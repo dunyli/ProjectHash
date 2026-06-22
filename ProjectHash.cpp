@@ -624,3 +624,91 @@ void test_hash_table() {
 
     ht_destroy(ht);
 }
+
+void test_set() {
+    printf("\n=== ТЕСТ МНОЖЕСТВА ===\n");
+
+    Set* s1 = set_create(10);
+    Set* s2 = set_create(10);
+
+    /* Формируем множества */
+    set_add(s1, "A");
+    set_add(s1, "B");
+    set_add(s1, "C");
+    set_add(s1, "D");
+
+    set_add(s2, "C");
+    set_add(s2, "D");
+    set_add(s2, "E");
+    set_add(s2, "F");
+
+    printf("s1: "); set_print(s1);
+    printf("s2: "); set_print(s2);
+
+    /* Объединение */
+    Set* s_union = set_create(10);
+    set_add(s_union, "A"); set_add(s_union, "B");
+    set_add(s_union, "C"); set_add(s_union, "D");
+    set_union(s_union, s2);
+    printf("s1 ∪ s2: "); set_print(s_union);
+    set_destroy(s_union);
+
+    /* Пересечение */
+    Set* s_inter = set_create(10);
+    set_add(s_inter, "A"); set_add(s_inter, "B");
+    set_add(s_inter, "C"); set_add(s_inter, "D");
+    set_intersection(s_inter, s2);
+    printf("s1 ∩ s2: "); set_print(s_inter);
+    set_destroy(s_inter);
+
+    /* Проверка подмножества */
+    Set* s3 = set_create(10);
+    set_add(s3, "C");
+    set_add(s3, "D");
+    printf("s3: "); set_print(s3);
+    printf("s3 ⊆ s1: %s\n", set_is_subset(s1, s3) ? "да" : "нет");
+    printf("s3 ⊆ s2: %s\n", set_is_subset(s2, s3) ? "да" : "нет");
+
+    set_destroy(s1);
+    set_destroy(s2);
+    set_destroy(s3);
+}
+
+void test_multiset() {
+    printf("\n=== ТЕСТ МУЛЬТИМНОЖЕСТВА ===\n");
+
+    Multiset* ms = multiset_create(10);
+
+    /* Добавление элементов с повторениями */
+    multiset_add(ms, "яблоко");
+    multiset_add(ms, "яблоко");
+    multiset_add(ms, "банан");
+    multiset_add(ms, "банан");
+    multiset_add(ms, "банан");
+    multiset_add(ms, "вишня");
+
+    multiset_print(ms);
+
+    /* Проверка кратности */
+    printf("Кратность 'яблоко': %d\n", multiset_count(ms, "яблоко"));
+    printf("Кратность 'банан': %d\n", multiset_count(ms, "банан"));
+    printf("Кратность 'апельсин': %d\n", multiset_count(ms, "апельсин"));
+
+    /* Удаление одного экземпляра */
+    multiset_remove_one(ms, "яблоко");
+    printf("После удаления одного 'яблоко':\n");
+    multiset_print(ms);
+
+    /* Добавление нескольких копий */
+    multiset_add_n(ms, "груша", 3);
+    printf("После добавления 3 'груша':\n");
+    multiset_print(ms);
+
+    /* Удаление всех экземпляров */
+    multiset_remove_all(ms, "банан");
+    printf("После удаления всех 'банан':\n");
+    multiset_print(ms);
+
+    multiset_destroy(ms);
+}
+
