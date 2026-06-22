@@ -712,3 +712,77 @@ void test_multiset() {
     multiset_destroy(ms);
 }
 
+/* ТЕСТ НА КОЛЛИЗИИ
+ * Специально используем маленькую таблицу, чтобы вызвать коллизии.
+ * Проверяем, что все данные сохраняются корректно.
+*/
+void test_collisions() {
+    printf("\n=== ТЕСТ КОЛЛИЗИЙ (FNV-1a) ===\n");
+
+    /* Маленькая таблица (4 бакета) — гарантированные коллизии */
+    HashTable* ht = ht_create(4, fnv1a_hash);
+
+    /* Вставляем 8 элементов в таблицу размером 4 */
+    ht_insert(ht, "a", 1);
+    ht_insert(ht, "b", 2);
+    ht_insert(ht, "c", 3);
+    ht_insert(ht, "d", 4);
+    ht_insert(ht, "e", 5);
+    ht_insert(ht, "f", 6);
+    ht_insert(ht, "g", 7);
+    ht_insert(ht, "h", 8);
+
+    printf("Таблица размером 4 с 8 элементами (коллизии неизбежны):\n");
+    ht_print(ht);
+
+    /* Проверяем, что все данные сохранились */
+    int val;
+    printf("Проверка всех элементов:\n");
+    for (char c = 'a'; c <= 'h'; c++) {
+        char key[2] = { c, '\0' };
+        if (ht_get(ht, key, &val)) {
+            printf("  %s -> %d\n", key, val);
+        }
+        else {
+            printf("  %s -> НЕ НАЙДЕН!\n", key);
+        }
+    }
+
+    ht_destroy(ht);
+}
+
+/* ТЕСТ ПРОИЗВОДИТЕЛЬНОСТИ FNV-1a */
+void test_performance() {
+    printf("\n=== ТЕСТ ПРОИЗВОДИТЕЛЬНОСТИ FNV-1a ===\n");
+
+    const int N = 10000;
+    char keys[10000][20];
+
+    /* Генерация случайных ключей */
+    srand(time(NULL));
+    for (int i = 0; i < N; i++) {
+        snprintf(keys[i], sizeof(keys[i]), "key_%d", rand() % 5000);
+    }
+
+    clock_t start, end;
+
+    /* Тест с FNV-1a */
+    HashTable* ht = ht_create(1024, fnv1a_hash);
+    start = clock();
+    for (int i = 0; i < N; i++) {
+        ht_insert(ht, keys[i], i);
+    }
+    end = clock();
+    printf("FNV-1a: %ld мкс на %d вставок\n",
+        (long)((double)(end - start) / CLOCKS_PER_SEC * 1000000), N);
+    ht_destroy(ht);
+}
+
+/* ЗАПУСК ВСЕХ ТЕСТОВ */
+void run_all_tests() {
+    test_hash_table();
+    test_set();
+    test_multiset();
+    test_collisions();
+    test_performance();
+}
