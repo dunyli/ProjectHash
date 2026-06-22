@@ -452,3 +452,80 @@ void set_print(Set* s) {
     }
     printf(" } (size=%u)\n", set_size(s));
 }
+
+/* МУЛЬТИМНОЖЕСТВО (Multiset / Bag)
+ * Мультимножество — обобщение множества, где элементы могут повторяться.
+ * Каждый элемент имеет кратность (счётчик).
+ * Теория мультимножеств:
+ * - Элементы могут повторяться (кратность > 1)
+ * - Операции: добавление, удаление одного/всех, подсчёт кратности
+ * - Суммарный размер = сумма кратностей всех элементов
+ * - Уникальных элементов = количество различных ключей
+*/
+
+/* Мультимножество — обёртка над хеш-таблицей */
+typedef struct {
+    HashTable* ht;
+} Multiset;
+
+/* СОЗДАНИЕ МУЛЬТИМНОЖЕСТВА */
+Multiset* multiset_create(uint32_t size) {
+    Multiset* ms = (Multiset*)malloc(sizeof(Multiset));
+    if (!ms) return NULL;
+
+    ms->ht = ht_create(size, fnv1a_hash);
+    if (!ms->ht) {
+        free(ms);
+        return NULL;
+    }
+    return ms;
+}
+
+/*  ДОБАВЛЕНИЕ ОДНОГО ЭЛЕМЕНТА
+ * Увеличивает кратность элемента на 1.
+ * Если элемента нет, создаёт с кратностью 1.
+*/
+void multiset_add(Multiset* ms, const char* key) {
+    int count;
+    if (ht_get(ms->ht, key, &count)) {
+        /* Элемент уже есть — увеличиваем кратность */
+        ht_insert(ms->ht, key, count + 1);
+    }
+    else {
+        /* Новый элемент — кратность 1 */
+        ht_insert(ms->ht, key, 1);
+    }
+}
+
+/* ДОБАВЛЕНИЕ N КОПИЙ ЭЛЕМЕНТА */
+void multiset_add_n(Multiset* ms, const char* key, int n) {
+    if (n <= 0) return;  /* Защита от отрицательного количества */
+
+    int count;
+    if (ht_get(ms->ht, key, &count)) {
+        ht_insert(ms->ht, key, count + n);
+    }
+    else {
+        ht_insert(ms->ht, key, n);
+    }
+}
+
+/* УДАЛЕНИЕ ОДНОГО ЭКЗЕМПЛЯРА
+ * Уменьшает кратность на 1.
+ * Если кратность становится 0, элемент удаляется полностью.
+ * Возвращает: true если элемент был удалён (кратность > 0), иначе false.
+*/
+bool multiset_remove_one(Multiset* ms, const char* key) {
+    int count;
+    if (!ht_get(ms->ht, key, &count)) return false;
+
+    if (count > 1) {
+        /* Кратность больше 1 — просто уменьшаем */
+        ht_insert(ms->ht, key, count - 1);
+    }
+    else {
+        /* Кратность = 1 — удаляем элемент полностью */
+        ht_delete(ms->ht, key);
+    }
+    return true;
+}
