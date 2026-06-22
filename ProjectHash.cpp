@@ -588,3 +588,39 @@ void multiset_destroy(Multiset* ms) {
     ht_destroy(ms->ht);
     free(ms);
 }
+
+
+/* АВТОМАТИЧЕСКИЕ ТЕСТЫ */
+void test_hash_table() {
+    printf("\n=== ТЕСТ ХЕШ-ТАБЛИЦЫ ===\n");
+
+    HashTable* ht = ht_create(10, fnv1a_hash);
+
+    /* Вставка элементов */
+    ht_insert(ht, "Иван", 5);
+    ht_insert(ht, "Даниил", 7);
+    ht_insert(ht, "Олег", 3);
+    ht_insert(ht, "Михаил", 9);
+    ht_insert(ht, "Петр", 2);
+    ht_insert(ht, "roman", 6);
+    ht_insert(ht, "date", 8);
+
+    ht_print(ht);
+
+    /* Поиск значения */
+    int val;
+    if (ht_get(ht, "Иван", &val)) {
+        printf("Найдено 'Иван': %d\n", val);
+    }
+
+    /* Удаление элемента */
+    ht_delete(ht, "roman");
+    printf("После удаления 'roman':\n");
+    ht_print(ht);
+
+    /* Проверка наличия */
+    printf("Содержит 'Петр': %s\n", ht_contains(ht, "Петр") ? "да" : "нет");
+    printf("Содержит 'roman': %s\n", ht_contains(ht, "roman") ? "да" : "нет");
+
+    ht_destroy(ht);
+}
