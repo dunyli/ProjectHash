@@ -116,3 +116,175 @@ HashTable* ht_create(uint32_t size, uint32_t(*hash_func)(const char*, uint32_t))
 
     return ht;
 }
+
+/* ПОИСК УЗЛА ПО КЛЮЧУ
+ * Возвращает указатель на найденный узел.
+ * Если prev_out не NULL, возвращает указатель на предыдущий узел (для удаления).
+*/
+HashNode* ht_find_node(HashTable* ht, const char* key, HashNode** prev_out) {
+    /*
+     * Алгоритм поиска:
+     * 1. Вычисляем хеш ключа (индекс)
+     * 2. Проходим по цепочке в этом контейнере
+     * 3. Сравниваем строки (strcmp)
+     * 4. Возвращаем найденный узел или NULL
+     */
+
+    uint32_t index = ht->hash_func(key, ht->size);
+    HashNode* curr = ht->buckets[index];
+    HashNode* prev = NULL;
+
+    /* Обход цепочки */
+    while (curr) {
+        /* Сравнение ключей (строк) */
+        if (strcmp(curr->key, key) == 0) {
+            /* Ключ найден, возвращаем узел */
+            if (prev_out) *prev_out = prev;
+            return curr;
+        }
+        prev = curr;
+        curr = curr->next;
+    }
+
+    /* Ключ не найден */
+    if (prev_out) *prev_out = prev;
+    return NULL;
+}
+
+/* ВСТАВКА/ОБНОВЛЕНИЕ ЗНАЧЕНИЯ
+ * Если ключ существует, обновляет значение.
+ * Если ключа нет, создаёт новый узел и вставляет в начало цепочки.
+ * Возвращает: true при успехе, false при ошибке.
+*/
+bool ht_insert(HashTable* ht, const char* key, int value) {
+    uint32_t index = ht->hash_func(key, ht->size);
+    HashNode* node = ht_find_node(ht, key, NULL);
+
+    /*
+     * Если ключ уже существует — обновляем значение
+     * Это позволяет использовать таблицу как массив
+     */
+    if (node) {
+        node->value = value;
+        return true;
+    }
+
+    /*
+     * Ключ не найден — создаём новый узел
+     * Вставляем в начало цепочки
+     */
+    node = (HashNode*)malloc(sizeof(HashNode));
+    if (!node) return false;
+
+    /* Копируем ключ в память */
+    node->key = (char*)malloc(strlen(key) + 1);
+    if (!node->key) {
+        free(node);
+        return false;
+    }
+    strcpy_s(node->key, strlen(key) + 1, key);
+
+    /* Устанавливаем значение */
+    node->value = value;
+
+    /* Вставка в начало цепочки */
+    node->next = ht->buckets[index];
+    ht->buckets[index] = node;
+    ht->count++;  /* Увеличиваем счётчик уникальных ключей */
+
+    return true;
+}
+
+/* ПОЛУЧЕНИЕ ЗНАЧЕНИЯ ПО КЛЮЧУ
+ * Возвращает: true если ключ найден, иначе false.
+ * Значение записывается в out_value (если указатель не NULL).
+*/
+bool ht_get(HashTable* ht, const char* key, int* out_value) {
+    HashNode* node = ht_find_node(ht, key, NULL);
+    if (!node) return false;  /* Ключ не найден */
+
+    if (out_value) *out_value = node->value;
+    return true;
+}
+
+/* УДАЛЕНИЕ КЛЮЧА
+ * Удаляет узел из цепочки и освобождает память.
+ * Возвращает: true если ключ найден и удалён, иначе false.
+*/
+bool ht_delete(HashTable* ht, const char* key) {
+    /*
+     * Алгоритм удаления:
+     * 1. Находим узел и предыдущий узел
+     * 2. Корректируем указатели (предыдущий → следующий)
+     * 3. Освобождаем память
+     * 4. Уменьшаем счётчик
+     */
+
+    uint32_t index = ht->hash_func(key, ht->size);
+    HashNode* prev = NULL;
+    HashNode* node = ht_find_node(ht, key, &prev);
+
+    if (!node) return false;  /* Ключ не найден */
+
+    /* Корректировка указателей */
+    if (prev) {
+        /* Узел в середине или конце цепочки */
+        prev->next = node->next;
+    }
+    else {
+        /* Узел в начале цепочки (голова) */
+        ht->buckets[index] = node->next;
+    }
+
+    /* Освобождение памяти */
+    free(node->key);
+    free(node);
+    ht->count--;  /* Уменьшаем счётчик уникальных ключей */
+
+    return true;
+}
+
+/* ПРОВЕРКА НАЛИЧИЯ КЛЮЧА */
+bool ht_contains(HashTable* ht, const char* key) {
+    return ht_find_node(ht, key, NULL) != NULL;
+}
+
+/* ОСВОБОЖДЕНИЕ ПАМЯТИ */
+void ht_destroy(HashTable* ht) {
+    if (!ht) return;
+
+    /*
+     * Освобождаем все цепочки:
+     * 1. Проходим по всем ячейкам
+     * 2. Для каждой ячейки проходим по цепочке
+     * 3. Освобождаем каждый узел и его ключ
+     */
+    for (uint32_t i = 0; i < ht->size; i++) {
+        HashNode* curr = ht->buckets[i];
+        while (curr) {
+            HashNode* next = curr->next;
+            free(curr->key);
+            free(curr);
+            curr = next;
+        }
+    }
+
+    free(ht->buckets);
+    free(ht);
+}
+
+/* ВЫВОД СОДЕРЖИМОГО */
+void ht_print(HashTable* ht) {
+    printf("HashTable (size=%u, count=%u):\n", ht->size, ht->count);
+    for (uint32_t i = 0; i < ht->size; i++) {
+        if (ht->buckets[i]) {
+            printf("  [%u] ", i);
+            HashNode* curr = ht->buckets[i];
+            while (curr) {
+                printf("'%s':%d ", curr->key, curr->value);
+                curr = curr->next;
+            }
+            printf("\n");
+        }
+    }
+}
